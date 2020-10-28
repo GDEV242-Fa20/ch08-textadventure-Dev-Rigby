@@ -52,7 +52,7 @@ public class Game
         Room outside, theater, pub, lab, office, security, janitorsCloset,
             storageOne, storageTwo, storageThree, gym, cafeteria, library, 
             hallwayOne, hallwayTwo, hallwayThree, hallwayFour, lockerRoom;
-      
+        Item paper = new Item(0, "A well written essay.");
         // create the rooms
         outside = new Room("outside the main entrance of the university");
         theater = new Room("in a lecture theater");
@@ -127,6 +127,10 @@ public class Game
         hallwayFour.setExit("east", security);
         
         lockerRoom.setExit("north", gym);
+        
+        //add item to library
+        library.addItem(paper);
+        
         //tracking for the previous room and the path taken
         previous = outside;
         path.add(outside);
@@ -287,15 +291,17 @@ public class Game
     {
         if(command.hasSecondWord()) {
             int rooms = Integer.parseInt(command.getSecondWord());
-            currentRoom = path.get(path.size()-1-rooms);
             if(rooms < path.size())
             {
+                currentRoom = path.get(path.size()-1-rooms);
                 for(int i = 0; i <= rooms; i++)
                 {
                     path.add(path.get(path.size()-i));
                 }
+                path.add(currentRoom);
             }
-            path.add(currentRoom);
+            else
+                System.out.println("You haven't traveled that far.");
         }
         else
         {

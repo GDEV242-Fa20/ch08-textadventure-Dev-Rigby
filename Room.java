@@ -32,7 +32,7 @@ public class Room
     public Room(String description) 
     {
         this.description = description;
-        this.items = null;
+        this.items = new ArrayList<Item>();
         exits = new HashMap<>();
     }
     public Room(String description, ArrayList<Item> items) 
