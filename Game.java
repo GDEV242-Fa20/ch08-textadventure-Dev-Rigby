@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 /**
  *  This class is the main class of the "World of Zuul" application. 
  *  "World of Zuul" is a very simple, text based adventure game.  Users 
@@ -19,22 +20,38 @@ public class Game
 {
     private Parser parser;
     private Room currentRoom;
-        
+    private Room previous;
+    private ArrayList<Room> path;
+    private Player player;
     /**
      * Create the game and initialise its internal map.
+     * Also creates an instance of player that can carry 5 items
+     * Also initialises the path arraylist that tracks the taken path
      */
     public Game() 
     {
+        path = new ArrayList<Room>();
         createRooms();
         parser = new Parser();
+        player = new Player(5);
     }
 
     /**
      * Create all the rooms and link their exits together.
+     * this is a sketch of the map
+     *      ___     ___
+     * ____|___|___|___|
+     * |___|___|___|___|
+     * |___|___|___|___|
+     * |___|___|___|___|
+     * |___|___|
+     * 
      */
     private void createRooms()
     {
-        Room outside, theater, pub, lab, office;
+        Room outside, theater, pub, lab, office, security, janitorsCloset,
+            storageOne, storageTwo, storageThree, gym, cafeteria, library, 
+            hallwayOne, hallwayTwo, hallwayThree, hallwayFour, lockerRoom;
       
         // create the rooms
         outside = new Room("outside the main entrance of the university");
@@ -42,7 +59,20 @@ public class Game
         pub = new Room("in the campus pub");
         lab = new Room("in a computing lab");
         office = new Room("in the computing admin office");
-        
+        security = new Room("in the security room");
+        janitorsCloset = new Room("in the janitor's closet");
+        storageOne = new Room("in the security storage room");
+        storageTwo = new Room("in the library storage room");
+        storageThree = new Room("in the gym storage room");
+        gym = new Room("in the gym");
+        cafeteria = new Room("in the cafeteria");
+        library = new Room("in the library");
+        hallwayOne = new Room("in a long hallway");
+        hallwayTwo = new Room("in a long hallway");
+        hallwayThree = new Room("in a long hallway");
+        hallwayFour= new Room("in a long hallway");
+        lockerRoom = new Room("in the locker room");
+                
         // initialise room exits
         outside.setExit("east", theater);
         outside.setExit("south", lab);
@@ -51,12 +81,55 @@ public class Game
         theater.setExit("west", outside);
 
         pub.setExit("east", outside);
+        pub.setExit("south", hallwayOne);
 
         lab.setExit("north", outside);
         lab.setExit("east", office);
+        lab.setExit("west", hallwayOne);
 
         office.setExit("west", lab);
-
+        
+        security.setExit("west", hallwayFour);
+        security.setExit("north", storageOne);
+        
+        janitorsCloset.setExit("north", hallwayFour);
+        
+        storageOne.setExit("south", security);
+        
+        storageTwo.setExit("east", library);
+        
+        storageThree.setExit("south", gym);
+        
+        gym.setExit("north", storageThree);
+        gym.setExit("east", hallwayTwo);
+        gym.setExit("south", lockerRoom);
+        
+        cafeteria.setExit("west", hallwayTwo);
+        
+        library.setExit("north", hallwayThree);
+        library.setExit("west", storageTwo);
+        
+        hallwayOne.setExit("north", pub);
+        hallwayOne.setExit("east", lab);
+        hallwayOne.setExit("south", hallwayTwo);
+        
+        hallwayTwo.setExit("north", hallwayOne);
+        hallwayTwo.setExit("west", gym);
+        hallwayTwo.setExit("south", hallwayThree);
+        hallwayTwo.setExit("east", cafeteria);
+        
+        hallwayThree.setExit("north", hallwayTwo);
+        hallwayThree.setExit("east", hallwayFour);
+        hallwayThree.setExit("south", library);
+        
+        hallwayFour.setExit("west", hallwayThree);
+        hallwayFour.setExit("south", janitorsCloset);
+        hallwayFour.setExit("east", security);
+        
+        lockerRoom.setExit("north", gym);
+        //tracking for the previous room and the path taken
+        previous = outside;
+        path.add(outside);
         currentRoom = outside;  // start game outside
     }
 
@@ -114,6 +187,18 @@ public class Game
             case GO:
                 goRoom(command);
                 break;
+                
+            case LOOK:
+                look();
+                break;
+                
+            case EAT:
+                eat();
+                break;
+                
+            case BACK:
+                goBack(command);
+                break;
 
             case QUIT:
                 wantToQuit = quit(command);
@@ -159,7 +244,9 @@ public class Game
             System.out.println("There is no door!");
         }
         else {
+            previous = currentRoom;
             currentRoom = nextRoom;
+            path.add(currentRoom);
             System.out.println(currentRoom.getLongDescription());
         }
     }
@@ -178,5 +265,49 @@ public class Game
         else {
             return true;  // signal that we want to quit
         }
+    }
+    /**
+     * Look around the room and get the long description
+     */
+    private void look()
+    {
+        System.out.println(currentRoom.getLongDescription());
+    }
+    /**
+     * eat food
+     */
+    private void eat()
+    {
+        System.out.println("You have eaten now and you are not hungary any more.");
+    }
+    /**
+     * go back rooms either one or multiple
+     */
+    private void goBack(Command command)
+    {
+        if(command.hasSecondWord()) {
+            int rooms = Integer.parseInt(command.getSecondWord());
+            currentRoom = path.get(path.size()-1-rooms);
+            if(rooms < path.size())
+            {
+                for(int i = 0; i <= rooms; i++)
+                {
+                    path.add(path.get(path.size()-i));
+                }
+            }
+            path.add(currentRoom);
+        }
+        else
+        {
+            Room temp = currentRoom;
+            path.add(previous);
+            currentRoom = previous;
+            previous = temp;
+        }
+    }
+    public static void main(String[] args)
+    {
+        Game game = new Game();
+        game.play();
     }
 }
